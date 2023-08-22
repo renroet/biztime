@@ -39,7 +39,7 @@ router.post('/', async (req, res, next) => {
         let { code, name, description } = req.body
         if(!code || !name) throw new ExpressError('Company must have both unique code and name', 400)
         const results = await db.query(`INSERT INTO companies VALUES ($1, $2, $3) RETURNING code, name, description`, [code, name, description])
-        return res.json({ company: results.rows[0]})
+        return res.status(201).json({ company: results.rows[0]})
     } catch (e) {
         return next(e);
     }

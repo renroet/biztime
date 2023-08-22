@@ -19,9 +19,9 @@ router.get('/:id', async (req, res, next) => {
         let { id } = req.params
         const results = await db.query(`SELECT * FROM invoices JOIN companies on comp_code = code WHERE id = $1`, [id]);
         if ( results.rows.length === 0 ) throw new expressError('No results found', 404)
-        let  {code, name, description, ID, amt, paid, add_date, paid_date }  = results.rows[0]
-        
-        return res.json({ invoice: {ID, amt, paid, add_date, paid_date, company: {code, name, description}}});
+        let  {code, name, description, amt, paid, add_date, paid_date }  = results.rows[0]
+        let ID = results.rows[0].id
+        return res.json({ invoice: {id: ID, amt, paid, add_date, paid_date, company: {code, name, description}}});
     } catch (e) {
         return next(e);
     }
@@ -34,7 +34,7 @@ router.post('/', async (req, res, next) => {
         if( !comp_code || !amt ) throw new expressError('Invoices must have both company code and amount due', 400);
         const results = await db.query(`INSERT INTO invoices (comp_code, amt) VALUES ($1, $2) RETURNING id, comp_code, amt, paid, add_date, paid_date`, [comp_code, amt]);
         if(results.rows.length === 0) throw new expressError('No company found', 404);
-        return res.json({ invoice: results.rows[0] })
+        return res.status(201).json({ invoice: results.rows[0] })
     } catch (e) {
         return next(e);
     }
