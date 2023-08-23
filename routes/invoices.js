@@ -44,10 +44,17 @@ router.post('/', async (req, res, next) => {
 router.put('/:id', async (req, res, next) => {
     try {
         let { id } = req.params
-        let { amt } = req.body
-        const results = await db.query(`UPDATE invoices SET amt=$1 WHERE id=$2 RETURNING id, comp_code, amt, paid, add_date, paid_date`, [amt, id]);
-        if( results.rows.length === 0 ) throw new expressError('No results found', 404);
-        return res.json({ invoice: results.rows[0] })
+        let { amt, paid } = req.body
+        if (paid) {
+            const results = await db.query(`UPDATE invoices SET amt=$1, paid=$2, paid_date=CURRENT_TIMESTAMP WHERE id=$3 RETURNING id, comp_code, amt, paid, add_date, paid_date`, [amt, paid, id]);
+            if( results.rows.length === 0 ) throw new expressError('No results found', 404);
+            return res.json({ invoice: results.rows[0] })
+        }
+        else {
+            const results = await db.query(`UPDATE invoices SET amt=$1, paid=$2, paid_date=null WHERE id=$3 RETURNING id, comp_code, amt, paid, add_date, paid_date`, [amt, paid, id]);
+            if( results.rows.length === 0 ) throw new expressError('No results found', 404);
+            return res.json({ invoice: results.rows[0] })
+        }
     } catch (e) {
         return next(e);
     }
